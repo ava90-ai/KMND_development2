@@ -31,6 +31,11 @@
             padding: 30px 0 25px;
             border-bottom: 2px solid #e4e4e7;
             margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
         .header h1 {
@@ -40,6 +45,134 @@
             background: linear-gradient(135deg, #f43f5e, #8b5cf6, #3b82f6);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+        }
+
+        .header .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            color: #3f3f46;
+        }
+
+        .header .user-info .role-badge {
+            background: #8b5cf6;
+            color: white;
+            padding: 2px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .header .user-info .role-badge.user {
+            background: #71717a;
+        }
+
+        .header .user-info .logout-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: 0.2s;
+        }
+
+        .header .user-info .logout-btn:hover {
+            background: #dc2626;
+        }
+
+        /* ===== АВТОРИЗАЦИЯ ===== */
+        .auth-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .auth-overlay.show {
+            display: flex;
+        }
+
+        .auth-box {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .auth-box h2 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #f43f5e, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .auth-box p {
+            color: #71717a;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .auth-box .auth-error {
+            color: #ef4444;
+            font-size: 13px;
+            margin-bottom: 12px;
+            display: none;
+        }
+
+        .auth-box input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #d4d4d8;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            margin-bottom: 12px;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .auth-box input:focus {
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+
+        .auth-box .auth-btn {
+            width: 100%;
+            padding: 12px;
+            background: #8b5cf6;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .auth-box .auth-btn:hover {
+            background: #7c3aed;
+        }
+
+        .auth-box .auth-hint {
+            margin-top: 12px;
+            font-size: 12px;
+            color: #a1a1aa;
+            text-align: center;
         }
 
         /* ===== ВКЛАДКИ ===== */
@@ -83,7 +216,7 @@
             background: #7c3aed;
         }
 
-        .tab-badge {
+        .tab-btn .tab-badge {
             display: inline-block;
             background: #e4e4e7;
             color: #3f3f46;
@@ -97,6 +230,10 @@
         .tab-btn.active .tab-badge {
             background: rgba(255, 255, 255, 0.25);
             color: white;
+        }
+
+        .tab-btn.hidden-tab {
+            display: none;
         }
 
         /* ===== КОНТЕНТ ===== */
@@ -120,7 +257,38 @@
             }
         }
 
-        /* ===== РЕДАКТИРУЕМОЕ ОПИСАНИЕ ДНЯ ===== */
+        /* ===== БЛОКИРОВКА ДЛЯ НЕАДМИНОВ ===== */
+        .readonly-overlay {
+            position: relative;
+        }
+
+        .readonly-overlay::after {
+            content: '🔒 Только для просмотра';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 16px;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .readonly-overlay .readonly-blocker {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 5;
+            cursor: not-allowed;
+        }
+
+        /* ===== ОПИСАНИЕ ДНЯ ===== */
         .day-description {
             background: #f8f8fa;
             border: 1px dashed #d4d4d8;
@@ -131,6 +299,7 @@
             align-items: flex-start;
             gap: 14px;
             transition: 0.3s;
+            position: relative;
         }
 
         .day-description:hover {
@@ -170,6 +339,12 @@
             font-style: italic;
         }
 
+        .day-description .desc-text[contenteditable="false"]:empty::before {
+            content: '📄 Нет описания';
+            color: #a1a1aa;
+            font-style: italic;
+        }
+
         .day-description .save-hint {
             font-size: 12px;
             color: #a1a1aa;
@@ -183,7 +358,14 @@
             opacity: 1;
         }
 
-        /* ===== БЛОК "КАРАВАН" ===== */
+        .day-description .lock-icon {
+            font-size: 16px;
+            color: #71717a;
+            flex-shrink: 0;
+            align-self: center;
+        }
+
+        /* ===== КАРАВАН ===== */
         .caravan-block {
             background: #f0f0ff;
             border: 2px solid #8b5cf6;
@@ -194,6 +376,7 @@
             grid-template-columns: 1fr 1fr;
             gap: 20px;
             align-items: start;
+            position: relative;
         }
 
         .caravan-block .caravan-title {
@@ -241,6 +424,11 @@
             box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
         }
 
+        .caravan-block .caravan-datetime input:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         .caravan-block .caravan-comment {
             grid-column: 1 / -1;
         }
@@ -273,7 +461,12 @@
             box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
         }
 
-        /* ===== TUMBLR-ПОСТЫ (для особых вкладок) ===== */
+        .caravan-block .caravan-comment textarea:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* ===== TUMBLR-ПОСТЫ ===== */
         .tumblr-posts {
             display: flex;
             flex-direction: column;
@@ -287,6 +480,7 @@
             padding: 24px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
             transition: 0.3s;
+            position: relative;
         }
 
         .tumblr-post:hover {
@@ -336,47 +530,7 @@
             border: 1px solid #e4e4e7;
         }
 
-        .tumblr-post .post-content strong,
-        .tumblr-post .post-content b {
-            font-weight: 700;
-        }
-
-        .tumblr-post .post-content em,
-        .tumblr-post .post-content i {
-            font-style: italic;
-        }
-
-        .tumblr-post .post-content u {
-            text-decoration: underline;
-        }
-
-        .tumblr-post .post-content s {
-            text-decoration: line-through;
-        }
-
-        .tumblr-post .post-content ul,
-        .tumblr-post .post-content ol {
-            padding-left: 24px;
-            margin: 8px 0;
-        }
-
-        .tumblr-post .post-content blockquote {
-            border-left: 4px solid #8b5cf6;
-            padding-left: 16px;
-            margin: 10px 0;
-            color: #3f3f46;
-            background: #f8f8fa;
-            padding: 12px 16px;
-            border-radius: 0 8px 8px 0;
-        }
-
-        .tumblr-post .post-content h1,
-        .tumblr-post .post-content h2,
-        .tumblr-post .post-content h3 {
-            margin: 12px 0 8px;
-        }
-
-        /* Форма создания Tumblr-поста */
+        /* Форма Tumblr */
         .tumblr-form {
             background: #f8f8fa;
             border: 2px dashed #d4d4d8;
@@ -384,6 +538,7 @@
             padding: 24px;
             margin-bottom: 24px;
             transition: 0.3s;
+            position: relative;
         }
 
         .tumblr-form:hover {
@@ -422,71 +577,9 @@
             border-color: #a1a1aa;
         }
 
-        .tumblr-form .toolbar button.active {
-            background: #8b5cf6;
-            color: white;
-            border-color: #8b5cf6;
-        }
-
-        .tumblr-form .tumblr-textarea {
-            width: 100%;
-            min-height: 150px;
-            padding: 14px;
-            border: 1px solid #d4d4d8;
-            border-radius: 10px;
-            font-size: 14px;
-            font-family: inherit;
-            resize: vertical;
-            outline: none;
-            transition: 0.2s;
-            background: white;
-            color: #1a1a1e;
-            line-height: 1.7;
-        }
-
-        .tumblr-form .tumblr-textarea:focus {
-            border-color: #8b5cf6;
-            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
-        }
-
-        .tumblr-form .form-actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 14px;
-            flex-wrap: wrap;
-        }
-
-        .tumblr-form .form-actions .btn-add-post {
-            background: #8b5cf6;
-            color: white;
-            border: none;
-            padding: 10px 28px;
-            border-radius: 10px;
-            font-weight: 700;
-            font-size: 14px;
-            cursor: pointer;
-            transition: 0.25s;
-        }
-
-        .tumblr-form .form-actions .btn-add-post:hover {
-            background: #7c3aed;
-            transform: scale(1.02);
-        }
-
-        .tumblr-form .form-actions .btn-insert-image {
-            background: #22c55e;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            transition: 0.25s;
-        }
-
-        .tumblr-form .form-actions .btn-insert-image:hover {
-            background: #16a34a;
+        .tumblr-form .toolbar button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
         }
 
         .tumblr-form .image-url-input {
@@ -530,7 +623,63 @@
             background: #7c3aed;
         }
 
-        /* ===== ТАБЛИЦА УВЕДОМЛЕНИЙ ===== */
+        .tumblr-form .tumblr-textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 14px;
+            border: 1px solid #d4d4d8;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            outline: none;
+            transition: 0.2s;
+            background: white;
+            color: #1a1a1e;
+            line-height: 1.7;
+        }
+
+        .tumblr-form .tumblr-textarea:focus {
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+
+        .tumblr-form .tumblr-textarea:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .tumblr-form .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+
+        .tumblr-form .form-actions .btn-add-post {
+            background: #8b5cf6;
+            color: white;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.25s;
+        }
+
+        .tumblr-form .form-actions .btn-add-post:hover {
+            background: #7c3aed;
+            transform: scale(1.02);
+        }
+
+        .tumblr-form .form-actions .btn-add-post:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ===== УВЕДОМЛЕНИЯ ===== */
         .posts-table-wrapper {
             background: #ffffff;
             border-radius: 16px;
@@ -602,6 +751,11 @@
             background: rgba(239, 68, 68, 0.08);
         }
 
+        .posts-table .btn-delete:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
         .empty-row td {
             color: #a1a1aa;
             text-align: center;
@@ -609,7 +763,6 @@
             font-style: italic;
         }
 
-        /* ===== ФОРМА ДОБАВЛЕНИЯ УВЕДОМЛЕНИЯ ===== */
         .add-post-form {
             display: flex;
             gap: 12px;
@@ -617,6 +770,7 @@
             background: #fafafc;
             border-top: 1px solid #e4e4e7;
             flex-wrap: wrap;
+            position: relative;
         }
 
         .add-post-form input {
@@ -642,6 +796,11 @@
             color: #a1a1aa;
         }
 
+        .add-post-form input:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         .add-post-form .btn-add {
             background: #8b5cf6;
             color: white;
@@ -660,7 +819,13 @@
             transform: scale(1.02);
         }
 
-        /* ===== ВСТАВКА EXCEL (только для дней недели) ===== */
+        .add-post-form .btn-add:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ===== EXCEL ===== */
         .excel-table-wrapper {
             background: #ffffff;
             border: 1px solid #e4e4e7;
@@ -669,6 +834,7 @@
             margin-bottom: 20px;
             overflow: auto;
             min-height: 60px;
+            position: relative;
         }
 
         .excel-table-wrapper .empty-excel {
@@ -725,6 +891,11 @@
             background: #dc2626;
         }
 
+        .excel-table-wrapper .btn-clear-table:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
         .btn-insert-excel {
             background: #22c55e;
             color: white;
@@ -743,8 +914,88 @@
             transform: scale(1.02);
         }
 
-        .btn-insert-excel .icon {
-            margin-right: 6px;
+        .btn-insert-excel:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ===== ИСТОРИЯ ===== */
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .history-item {
+            background: #f8f8fa;
+            border: 1px solid #e4e4e7;
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            transition: 0.2s;
+        }
+
+        .history-item:hover {
+            border-color: #8b5cf6;
+        }
+
+        .history-item .history-left {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .history-item .history-action {
+            font-weight: 600;
+            color: #1a1a1e;
+        }
+
+        .history-item .history-detail {
+            font-size: 14px;
+            color: #3f3f46;
+        }
+
+        .history-item .history-meta {
+            font-size: 12px;
+            color: #71717a;
+        }
+
+        .history-item .history-user {
+            background: #e4e4e7;
+            padding: 2px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #3f3f46;
+        }
+
+        .history-empty {
+            text-align: center;
+            padding: 40px 0;
+            color: #a1a1aa;
+            font-style: italic;
+        }
+
+        .history-clear-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-bottom: 20px;
+        }
+
+        .history-clear-btn:hover {
+            background: #dc2626;
         }
 
         /* ===== МОДАЛЬНОЕ ОКНО ДЛЯ EXCEL ===== */
@@ -846,6 +1097,9 @@
             .header h1 {
                 font-size: 32px;
             }
+            .header {
+                flex-direction: column;
+            }
 
             .tabs {
                 gap: 5px;
@@ -853,11 +1107,6 @@
             .tab-btn {
                 font-size: 12px;
                 padding: 8px 14px;
-            }
-
-            .day-description {
-                flex-direction: column;
-                gap: 8px;
             }
 
             .caravan-block {
@@ -889,16 +1138,13 @@
                 width: 100%;
             }
 
-            .modal-box {
-                padding: 20px;
+            .auth-box {
+                padding: 24px;
             }
 
-            .tumblr-form .toolbar {
-                gap: 4px;
-            }
-            .tumblr-form .toolbar button {
-                font-size: 12px;
-                padding: 4px 10px;
+            .history-item {
+                flex-direction: column;
+                align-items: stretch;
             }
         }
 
@@ -910,14 +1156,6 @@
                 font-size: 11px;
                 padding: 6px 12px;
             }
-            .posts-table-wrapper {
-                border-radius: 10px;
-            }
-            .posts-table th,
-            .posts-table td {
-                padding: 8px 10px;
-                font-size: 12px;
-            }
         }
     </style>
 </head>
@@ -928,6 +1166,11 @@
         <!-- ===== ШАПКА ===== -->
         <header class="header">
             <h1>KomanDa</h1>
+            <div class="user-info" id="userInfo">
+                <span id="userNameDisplay">Гость</span>
+                <span class="role-badge" id="roleBadge" style="display:none;">Админ</span>
+                <button class="logout-btn" id="logoutBtn" style="display:none;" onclick="logout()">Выйти</button>
+            </div>
         </header>
 
         <!-- ===== ВКЛАДКИ ===== -->
@@ -955,9 +1198,35 @@
         </div>
     </div>
 
+    <!-- ===== МОДАЛЬНОЕ ОКНО АВТОРИЗАЦИИ ===== -->
+    <div class="auth-overlay" id="authModal">
+        <div class="auth-box">
+            <h2>KomanDa</h2>
+            <p>Войдите для доступа к планировщику</p>
+            <div class="auth-error" id="authError">Неверный логин или пароль</div>
+            <input type="text" id="authLogin" placeholder="Логин">
+            <input type="password" id="authPassword" placeholder="Пароль">
+            <button class="auth-btn" onclick="login()">🔑 Войти</button>
+            <div class="auth-hint">Только администратор может вносить изменения</div>
+        </div>
+    </div>
+
     <script>
         // ============================================================
-        // 1. НАЗВАНИЯ ВКЛАДОК (10 штук)
+        // 1. НАСТРОЙКИ АВТОРИЗАЦИИ
+        // ============================================================
+        // Логин администратора: AdmKmnd
+        // Пароль: gH7#kL9$pQ2@mR5!xW8&zN3
+        const USERS = {
+            'AdmKmnd': 'gH7#kL9$pQ2@mR5!xW8&zN3'
+        };
+
+        const STORAGE_KEY = 'komanDaData';
+        const AUTH_KEY = 'komanDaAuth';
+        const HISTORY_KEY = 'komanDaHistory';
+
+        // ============================================================
+        // 2. НАЗВАНИЯ ВКЛАДОК (10 штук)
         // ============================================================
         const TAB_NAMES = [
             'Понедельник',
@@ -969,27 +1238,149 @@
             'Воскресенье',
             'Особые События',
             'Инструкции по развитию',
-            'Прочие инструкции'
+            '📜 История'
         ];
 
-        const STORAGE_KEY = 'komanDaData';
-
-        // Дни недели (первые 7 вкладок)
         const DAY_TABS = [0, 1, 2, 3, 4, 5, 6];
-        // Tumblr-вкладки (последние 3)
-        const TUMBLR_TABS = [7, 8, 9];
+        const TUMBLR_TABS = [7, 8];
+        const HISTORY_TAB = 9;
+
+        let currentUser = null;
 
         // ============================================================
-        // 2. РАБОТА С ДАННЫМИ (localStorage)
+        // 3. АВТОРИЗАЦИЯ
+        // ============================================================
+        function checkAuth() {
+            const saved = localStorage.getItem(AUTH_KEY);
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    if (data.login && USERS[data.login]) {
+                        currentUser = data.login;
+                        return true;
+                    }
+                } catch {}
+            }
+            return false;
+        }
+
+        function isAdmin() {
+            return currentUser === 'AdmKmnd';
+        }
+
+        function login() {
+            const login = document.getElementById('authLogin').value.trim();
+            const password = document.getElementById('authPassword').value.trim();
+            const errorEl = document.getElementById('authError');
+
+            if (USERS[login] && USERS[login] === password) {
+                currentUser = login;
+                localStorage.setItem(AUTH_KEY, JSON.stringify({ login }));
+                errorEl.style.display = 'none';
+                document.getElementById('authModal').classList.remove('show');
+                updateUI();
+                renderAll();
+                if (isAdmin()) {
+                    addHistory('login', `Вход администратора ${login}`);
+                }
+            } else {
+                errorEl.style.display = 'block';
+            }
+        }
+
+        function logout() {
+            if (isAdmin()) {
+                addHistory('logout', `Выход администратора ${currentUser}`);
+            }
+            currentUser = null;
+            localStorage.removeItem(AUTH_KEY);
+            updateUI();
+            renderAll();
+            document.getElementById('authModal').classList.add('show');
+        }
+
+        function updateUI() {
+            const display = document.getElementById('userNameDisplay');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const roleBadge = document.getElementById('roleBadge');
+
+            if (currentUser) {
+                display.textContent = `👤 ${currentUser}`;
+                logoutBtn.style.display = 'inline-block';
+                if (isAdmin()) {
+                    roleBadge.style.display = 'inline-block';
+                    roleBadge.textContent = 'Админ';
+                    roleBadge.className = 'role-badge';
+                } else {
+                    roleBadge.style.display = 'inline-block';
+                    roleBadge.textContent = 'Пользователь';
+                    roleBadge.className = 'role-badge user';
+                }
+            } else {
+                display.textContent = 'Гость';
+                logoutBtn.style.display = 'none';
+                roleBadge.style.display = 'none';
+            }
+        }
+
+        // ============================================================
+        // 4. ИСТОРИЯ ИЗМЕНЕНИЙ
+        // ============================================================
+        function getHistory() {
+            const raw = localStorage.getItem(HISTORY_KEY);
+            if (!raw) return [];
+            try {
+                return JSON.parse(raw);
+            } catch {
+                return [];
+            }
+        }
+
+        function saveHistory(history) {
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+        }
+
+        function addHistory(action, detail) {
+            // Только администратор записывает историю
+            if (!isAdmin()) return;
+            const history = getHistory();
+            history.unshift({
+                id: Date.now(),
+                user: currentUser || 'Гость',
+                action: action,
+                detail: detail || '',
+                timestamp: new Date().toLocaleString('ru-RU', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                })
+            });
+            if (history.length > 500) history.length = 500;
+            saveHistory(history);
+        }
+
+        function clearHistory() {
+            if (!isAdmin()) return;
+            if (!confirm('Очистить всю историю изменений?')) return;
+            saveHistory([]);
+            renderAll();
+            showNotification('🗑️ История очищена');
+        }
+
+        // ============================================================
+        // 5. ОСНОВНЫЕ ДАННЫЕ
         // ============================================================
         function getDefaultData() {
             const tabs = TAB_NAMES.map(() => []);
             return {
-                descriptions: {},           // { tabIndex: 'текст' }
-                caravan: {},                // { tabIndex: { date, time, comment } }
-                excelTables: {},            // { tabIndex: 'html-код таблицы' }
-                tumblrPosts: {},            // { tabIndex: [ { id, content, date } ] }
-                posts: tabs                 // уведомления для дней недели
+                descriptions: {},
+                caravan: {},
+                excelTables: {},
+                tumblrPosts: {},
+                posts: tabs
             };
         }
 
@@ -1024,9 +1415,18 @@
         }
 
         // ============================================================
-        // 3. УВЕДОМЛЕНИЯ (для дней недели)
+        // 6. ОПЕРАЦИИ С ДАННЫМИ (только для администратора)
         // ============================================================
+        function checkAdminPermission() {
+            if (!isAdmin()) {
+                showNotification('⛔ Только администратор может вносить изменения!');
+                return false;
+            }
+            return true;
+        }
+
         function addPost(tabIndex, title) {
+            if (!checkAdminPermission()) return;
             const data = loadData();
             const newPost = {
                 id: Date.now() + Math.random() * 1000,
@@ -1040,58 +1440,71 @@
             };
             data.posts[tabIndex].unshift(newPost);
             saveData(data);
+            addHistory('add_notification', `${TAB_NAMES[tabIndex]}: "${title.trim()}"`);
             renderAll();
         }
 
         function deletePost(tabIndex, postId) {
+            if (!checkAdminPermission()) return;
             if (!confirm('Удалить это уведомление?')) return;
             const data = loadData();
+            const post = data.posts[tabIndex].find(p => p.id === postId);
             data.posts[tabIndex] = data.posts[tabIndex].filter(p => p.id !== postId);
             saveData(data);
+            if (post) {
+                addHistory('delete_notification', `${TAB_NAMES[tabIndex]}: "${post.title}"`);
+            }
             renderAll();
         }
 
-        // ============================================================
-        // 4. ОПИСАНИЕ ДНЯ
-        // ============================================================
         function saveDescription(tabIndex, text) {
+            if (!checkAdminPermission()) return;
             const data = loadData();
-            data.descriptions[tabIndex] = text;
-            saveData(data);
+            const old = data.descriptions[tabIndex] || '';
+            if (old !== text) {
+                data.descriptions[tabIndex] = text;
+                saveData(data);
+                addHistory('edit_description', `${TAB_NAMES[tabIndex]}: описание дня обновлено`);
+                renderAll();
+            }
         }
 
-        // ============================================================
-        // 5. КАРАВАН (дата, время, комментарий)
-        // ============================================================
         function saveCaravan(tabIndex, field, value) {
+            if (!checkAdminPermission()) return;
             const data = loadData();
             if (!data.caravan) data.caravan = {};
             if (!data.caravan[tabIndex]) data.caravan[tabIndex] = { date: '', time: '', comment: '' };
-            data.caravan[tabIndex][field] = value;
-            saveData(data);
+            const old = data.caravan[tabIndex][field] || '';
+            if (old !== value) {
+                data.caravan[tabIndex][field] = value;
+                saveData(data);
+                const fieldNames = { date: 'дата', time: 'время', comment: 'комментарий' };
+                addHistory('edit_caravan', `${TAB_NAMES[tabIndex]}: изменён ${fieldNames[field] || field}`);
+                renderAll();
+            }
         }
 
-        // ============================================================
-        // 6. EXCEL ТАБЛИЦА (только для дней недели)
-        // ============================================================
         function saveExcelTable(tabIndex, html) {
+            if (!checkAdminPermission()) return;
             const data = loadData();
             data.excelTables[tabIndex] = html;
             saveData(data);
+            addHistory('add_excel', `${TAB_NAMES[tabIndex]}: вставлена таблица Excel`);
+            renderAll();
         }
 
         function clearExcelTable(tabIndex) {
+            if (!checkAdminPermission()) return;
             if (!confirm('Очистить таблицу?')) return;
             const data = loadData();
             data.excelTables[tabIndex] = '';
             saveData(data);
+            addHistory('clear_excel', `${TAB_NAMES[tabIndex]}: таблица Excel очищена`);
             renderAll();
         }
 
-        // ============================================================
-        // 7. TUMBLR-ПОСТЫ (для особых вкладок)
-        // ============================================================
         function addTumblrPost(tabIndex, content) {
+            if (!checkAdminPermission()) return;
             const data = loadData();
             if (!data.tumblrPosts) data.tumblrPosts = {};
             if (!data.tumblrPosts[tabIndex]) data.tumblrPosts[tabIndex] = [];
@@ -1109,25 +1522,37 @@
             };
             data.tumblrPosts[tabIndex].unshift(newPost);
             saveData(data);
+            const preview = content.substring(0, 50) + (content.length > 50 ? '...' : '');
+            addHistory('add_tumblr', `${TAB_NAMES[tabIndex]}: "${preview}"`);
             renderAll();
         }
 
         function deleteTumblrPost(tabIndex, postId) {
+            if (!checkAdminPermission()) return;
             if (!confirm('Удалить этот пост?')) return;
             const data = loadData();
             if (data.tumblrPosts && data.tumblrPosts[tabIndex]) {
+                const post = data.tumblrPosts[tabIndex].find(p => p.id === postId);
                 data.tumblrPosts[tabIndex] = data.tumblrPosts[tabIndex].filter(p => p.id !== postId);
                 saveData(data);
+                if (post) {
+                    const preview = post.content.substring(0, 50) + (post.content.length > 50 ? '...' : '');
+                    addHistory('delete_tumblr', `${TAB_NAMES[tabIndex]}: "${preview}"`);
+                }
                 renderAll();
             }
         }
 
         // ============================================================
-        // 8. МОДАЛЬНОЕ ОКНО ДЛЯ EXCEL
+        // 7. МОДАЛЬНОЕ ОКНО ДЛЯ EXCEL
         // ============================================================
         let currentExcelTab = 0;
 
         function openExcelModal(tabIndex) {
+            if (!isAdmin()) {
+                showNotification('⛔ Только администратор может вставлять таблицы!');
+                return;
+            }
             currentExcelTab = tabIndex;
             document.getElementById('excelModal').classList.add('show');
             document.getElementById('excelInput').value = '';
@@ -1139,6 +1564,7 @@
         }
 
         function insertExcelTable() {
+            if (!isAdmin()) return;
             const text = document.getElementById('excelInput').value;
             if (!text.trim()) {
                 alert('Вставьте данные из Excel!');
@@ -1161,33 +1587,14 @@
 
             saveExcelTable(currentExcelTab, html);
             closeExcelModal();
-            renderAll();
-
             showNotification('✅ Таблица вставлена!');
         }
 
         // ============================================================
-        // 9. УВЕДОМЛЕНИЯ
-        // ============================================================
-        function showNotification(msg) {
-            const div = document.createElement('div');
-            div.style.cssText = `
-                position: fixed; bottom: 20px; right: 20px;
-                background: #22c55e; color: white;
-                padding: 14px 24px; border-radius: 12px;
-                font-weight: 600; z-index: 9999;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-                animation: fadeUp 0.3s ease;
-            `;
-            div.textContent = msg;
-            document.body.appendChild(div);
-            setTimeout(() => div.remove(), 2500);
-        }
-
-        // ============================================================
-        // 10. ВСТАВКА ИЗОБРАЖЕНИЙ В TUMBLR
+        // 8. TUMBLR-ФУНКЦИИ
         // ============================================================
         function toggleImageInput() {
+            if (!isAdmin()) return;
             const container = document.getElementById('imageUrlContainer');
             container.classList.toggle('show');
             if (container.classList.contains('show')) {
@@ -1196,6 +1603,7 @@
         }
 
         function insertImageToTumblr() {
+            if (!isAdmin()) return;
             const url = document.getElementById('imageUrlInput').value.trim();
             if (!url) {
                 alert('Введите URL изображения!');
@@ -1203,21 +1611,19 @@
             }
             const textarea = document.getElementById('tumblrTextarea');
             const imgTag = `<img src="${url}" alt="Вставленное изображение">`;
-            // Вставляем в позицию курсора
             const start = textarea.selectionStart;
             const end = textarea.selectionEnd;
             const text = textarea.value;
             textarea.value = text.substring(0, start) + imgTag + text.substring(end);
             textarea.focus();
-            // Устанавливаем курсор после вставленного тега
             const newPos = start + imgTag.length;
             textarea.setSelectionRange(newPos, newPos);
             document.getElementById('imageUrlInput').value = '';
             document.getElementById('imageUrlContainer').classList.remove('show');
         }
 
-        // Вставка форматирования в Tumblr
         function insertTumblrFormat(tag) {
+            if (!isAdmin()) return;
             const textarea = document.getElementById('tumblrTextarea');
             const start = textarea.selectionStart;
             const end = textarea.selectionEnd;
@@ -1250,6 +1656,7 @@
         }
 
         function submitTumblrPost(tabIndex) {
+            if (!isAdmin()) return;
             const textarea = document.getElementById('tumblrTextarea');
             const content = textarea.value.trim();
             if (!content) {
@@ -1258,12 +1665,28 @@
             }
             addTumblrPost(tabIndex, content);
             textarea.value = '';
-            // Сброс форматирования
-            document.querySelectorAll('.toolbar button').forEach(b => b.classList.remove('active'));
         }
 
         // ============================================================
-        // 11. ОТРИСОВКА
+        // 9. УВЕДОМЛЕНИЯ
+        // ============================================================
+        function showNotification(msg) {
+            const div = document.createElement('div');
+            div.style.cssText = `
+                position: fixed; bottom: 20px; right: 20px;
+                background: #22c55e; color: white;
+                padding: 14px 24px; border-radius: 12px;
+                font-weight: 600; z-index: 9999;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+                animation: fadeUp 0.3s ease;
+            `;
+            div.textContent = msg;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+        }
+
+        // ============================================================
+        // 10. ОТРИСОВКА
         // ============================================================
         let currentTab = 0;
 
@@ -1274,8 +1697,10 @@
             container.innerHTML = TAB_NAMES.map((name, i) => {
                 const count = data.posts[i] ? data.posts[i].length : 0;
                 const isActive = i === currentTab ? 'active' : '';
+                const isHistory = i === HISTORY_TAB;
+                const hidden = isHistory && !isAdmin() ? 'hidden-tab' : '';
                 return `
-                    <button class="tab-btn ${isActive}" onclick="switchTab(${i})">
+                    <button class="tab-btn ${isActive} ${hidden}" onclick="switchTab(${i})">
                         ${name}
                         <span class="tab-badge">${count}</span>
                     </button>
@@ -1288,6 +1713,8 @@
             const data = loadData();
             const isDayTab = DAY_TABS.includes(currentTab);
             const isTumblrTab = TUMBLR_TABS.includes(currentTab);
+            const isHistoryTab = currentTab === HISTORY_TAB;
+            const admin = isAdmin();
 
             let html = `<div class="tab-content active">`;
 
@@ -1304,12 +1731,12 @@
                         <span class="icon">📝</span>
                         <div
                             class="desc-text"
-                            contenteditable="true"
+                            contenteditable="${admin}"
                             data-tab="${currentTab}"
                             oninput="onDescriptionInput(this)"
                             onblur="onDescriptionBlur(this)"
                         >${escapeHtml(desc)}</div>
-                        <span class="save-hint">💾 сохраняется автоматически</span>
+                        ${admin ? '<span class="save-hint">💾 сохраняется автоматически</span>' : '<span class="lock-icon">🔒</span>'}
                     </div>
                 `;
 
@@ -1319,20 +1746,21 @@
                         <div class="caravan-title">
                             <span class="icon">🐫</span>
                             Караван
+                            ${!admin ? '<span style="font-size:13px;color:#71717a;font-weight:400;">(только просмотр)</span>' : ''}
                         </div>
                         <div class="caravan-datetime">
                             <div>
                                 <label>📅 Дата</label>
-                                <input type="date" value="${caravan.date || ''}" onchange="onCaravanChange(${currentTab}, 'date', this.value)">
+                                <input type="date" value="${caravan.date || ''}" ${admin ? `onchange="onCaravanChange(${currentTab}, 'date', this.value)"` : 'disabled'}>
                             </div>
                             <div>
                                 <label>⏰ Время</label>
-                                <input type="time" value="${caravan.time || ''}" onchange="onCaravanChange(${currentTab}, 'time', this.value)">
+                                <input type="time" value="${caravan.time || ''}" ${admin ? `onchange="onCaravanChange(${currentTab}, 'time', this.value)"` : 'disabled'}>
                             </div>
                         </div>
                         <div class="caravan-comment">
                             <label>💬 Комментарий</label>
-                            <textarea onchange="onCaravanChange(${currentTab}, 'comment', this.value)">${escapeHtml(caravan.comment || '')}</textarea>
+                            <textarea ${admin ? `onchange="onCaravanChange(${currentTab}, 'comment', this.value)"` : 'disabled'}>${escapeHtml(caravan.comment || '')}</textarea>
                         </div>
                     </div>
                 `;
@@ -1345,18 +1773,20 @@
                 if (excelHtml) {
                     html += excelHtml;
                     html += `
-                        <button class="btn-clear-table" onclick="clearExcelTable(${currentTab})">🗑️ Очистить таблицу</button>
+                        <button class="btn-clear-table" onclick="clearExcelTable(${currentTab})" ${admin ? '' : 'disabled'}>
+                            🗑️ Очистить таблицу
+                        </button>
                     `;
                 } else {
                     html += `
                         <div class="empty-excel">
-                            📊 Нет таблицы. Нажмите кнопку ниже, чтобы вставить из Excel.
+                            📊 ${admin ? 'Нет таблицы. Нажмите кнопку ниже, чтобы вставить из Excel.' : 'Нет таблицы'}
                         </div>
                     `;
                 }
 
                 html += `
-                        <button class="btn-insert-excel" onclick="openExcelModal(${currentTab})" style="margin-top:10px;">
+                        <button class="btn-insert-excel" onclick="openExcelModal(${currentTab})" ${admin ? '' : 'disabled'} style="margin-top:10px;">
                             <span class="icon">📋</span> Вставить таблицу из Excel
                         </button>
                     </div>
@@ -1370,7 +1800,7 @@
                                 <tr>
                                     <th>🔔 Уведомление</th>
                                     <th style="width:140px;">📅 Дата</th>
-                                    <th style="width:80px; text-align:right;">Действие</th>
+                                    <th style="width:80px; text-align:right;">${admin ? 'Действие' : ''}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1379,7 +1809,7 @@
                 if (posts.length === 0) {
                     html += `
                         <tr class="empty-row">
-                            <td colspan="3">✨ Нет уведомлений. Добавьте первое!</td>
+                            <td colspan="3">✨ Нет уведомлений</td>
                         </tr>
                     `;
                 } else {
@@ -1389,7 +1819,7 @@
                                 <td class="post-title">${escapeHtml(post.title)}</td>
                                 <td class="post-date">${escapeHtml(post.date)}</td>
                                 <td style="text-align:right;">
-                                    <button class="btn-delete" onclick="deletePost(${currentTab}, ${post.id})" title="Удалить">✕</button>
+                                    ${admin ? `<button class="btn-delete" onclick="deletePost(${currentTab}, ${post.id})" title="Удалить">✕</button>` : ''}
                                 </td>
                             </tr>
                         `;
@@ -1400,10 +1830,16 @@
                             </tbody>
                         </table>
 
+                        ${admin ? `
                         <form class="add-post-form" onsubmit="onAddPost(event, ${currentTab})">
                             <input type="text" placeholder="Введите новое уведомление..." required id="newPostInput_${currentTab}">
                             <button type="submit" class="btn-add">➕ Добавить</button>
                         </form>
+                        ` : `
+                        <div style="padding:12px 20px;background:#fafafc;border-top:1px solid #e4e4e7;color:#a1a1aa;font-size:13px;text-align:center;">
+                            🔒 Войдите как администратор для добавления уведомлений
+                        </div>
+                        `}
                     </div>
                 `;
 
@@ -1411,73 +1847,69 @@
                 // ===== TUMBLR-ПОСТЫ =====
                 const posts = (data.tumblrPosts && data.tumblrPosts[currentTab]) || [];
 
-                // Форма создания поста
-                html += `
-                    <div class="tumblr-form">
-                        <div class="form-title">✏️ Создать новый пост</div>
-                        <div class="toolbar">
-                            <button onclick="insertTumblrFormat('h1')" title="Заголовок H1">H1</button>
-                            <button onclick="insertTumblrFormat('h2')" title="Заголовок H2">H2</button>
-                            <button onclick="insertTumblrFormat('h3')" title="Заголовок H3">H3</button>
-                            <button onclick="insertTumblrFormat('b')" title="Жирный"><b>B</b></button>
-                            <button onclick="insertTumblrFormat('i')" title="Курсив"><i>I</i></button>
-                            <button onclick="insertTumblrFormat('u')" title="Подчёркнутый"><u>U</u></button>
-                            <button onclick="insertTumblrFormat('s')" title="Зачёркнутый"><s>S</s></button>
-                            <button onclick="insertTumblrFormat('quote')" title="Цитата">"</button>
-                            <button onclick="insertTumblrFormat('ul')" title="Маркированный список">•</button>
-                            <button onclick="insertTumblrFormat('ol')" title="Нумерованный список">1.</button>
-                            <button onclick="toggleImageInput()" title="Вставить изображение">🖼️</button>
+                if (admin) {
+                    html += `
+                        <div class="tumblr-form">
+                            <div class="form-title">✏️ Создать новый пост</div>
+                            <div class="toolbar">
+                                <button onclick="insertTumblrFormat('h1')" title="Заголовок H1">H1</button>
+                                <button onclick="insertTumblrFormat('h2')" title="Заголовок H2">H2</button>
+                                <button onclick="insertTumblrFormat('h3')" title="Заголовок H3">H3</button>
+                                <button onclick="insertTumblrFormat('b')" title="Жирный"><b>B</b></button>
+                                <button onclick="insertTumblrFormat('i')" title="Курсив"><i>I</i></button>
+                                <button onclick="insertTumblrFormat('u')" title="Подчёркнутый"><u>U</u></button>
+                                <button onclick="insertTumblrFormat('s')" title="Зачёркнутый"><s>S</s></button>
+                                <button onclick="insertTumblrFormat('quote')" title="Цитата">"</button>
+                                <button onclick="insertTumblrFormat('ul')" title="Маркированный список">•</button>
+                                <button onclick="insertTumblrFormat('ol')" title="Нумерованный список">1.</button>
+                                <button onclick="toggleImageInput()" title="Вставить изображение">🖼️</button>
+                            </div>
+                            <div class="image-url-input" id="imageUrlContainer">
+                                <input type="text" id="imageUrlInput" placeholder="Введите URL изображения...">
+                                <button class="btn-insert-img" onclick="insertImageToTumblr()">Вставить</button>
+                            </div>
+                            <textarea class="tumblr-textarea" id="tumblrTextarea" placeholder="Напишите что-нибудь..."></textarea>
+                            <div class="form-actions">
+                                <button class="btn-add-post" onclick="submitTumblrPost(${currentTab})">📤 Опубликовать</button>
+                            </div>
                         </div>
-                        <div class="image-url-input" id="imageUrlContainer">
-                            <input type="text" id="imageUrlInput" placeholder="Введите URL изображения...">
-                            <button class="btn-insert-img" onclick="insertImageToTumblr()">Вставить</button>
+                    `;
+                } else {
+                    html += `
+                        <div style="background:#f8f8fa;border:2px dashed #d4d4d8;border-radius:16px;padding:24px;margin-bottom:24px;text-align:center;color:#a1a1aa;">
+                            🔒 Только администратор может создавать посты
                         </div>
-                        <textarea class="tumblr-textarea" id="tumblrTextarea" placeholder="Напишите что-нибудь..."></textarea>
-                        <div class="form-actions">
-                            <button class="btn-add-post" onclick="submitTumblrPost(${currentTab})">📤 Опубликовать</button>
-                        </div>
-                    </div>
-                `;
+                    `;
+                }
 
-                // Список постов
                 html += `<div class="tumblr-posts">`;
 
                 if (posts.length === 0) {
                     html += `
                         <div style="text-align:center; padding:40px 0; color:#a1a1aa; font-style:italic;">
-                            📭 Нет постов. Создайте первый!
+                            📭 Нет постов
                         </div>
                     `;
                 } else {
                     posts.forEach(post => {
-                        // Преобразуем Markdown-подобный текст в HTML
                         let content = post.content;
-                        // Заголовки
                         content = content.replace(/^# (.+)$/gm, '<h1>$1</h1>');
                         content = content.replace(/^## (.+)$/gm, '<h2>$1</h2>');
                         content = content.replace(/^### (.+)$/gm, '<h3>$1</h3>');
-                        // Жирный
                         content = content.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-                        // Курсив
                         content = content.replace(/\*(.+?)\*/g, '<em>$1</em>');
-                        // Подчёркнутый
                         content = content.replace(/__(.+?)__/g, '<u>$1</u>');
-                        // Зачёркнутый
                         content = content.replace(/~~(.+?)~~/g, '<s>$1</s>');
-                        // Цитаты
                         content = content.replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>');
-                        // Списки (маркированные)
                         content = content.replace(/^- (.+)$/gm, '<li>$1</li>');
-                        // Списки (нумерованные)
                         content = content.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
-                        // Переносы строк в <br>
                         content = content.replace(/\n/g, '<br>');
 
                         html += `
                             <div class="tumblr-post">
                                 <div class="post-header">
                                     <span class="post-date">📅 ${escapeHtml(post.date)}</span>
-                                    <button class="btn-delete-post" onclick="deleteTumblrPost(${currentTab}, ${post.id})" title="Удалить">✕</button>
+                                    ${admin ? `<button class="btn-delete-post" onclick="deleteTumblrPost(${currentTab}, ${post.id})" title="Удалить">✕</button>` : ''}
                                 </div>
                                 <div class="post-content">${content}</div>
                             </div>
@@ -1486,13 +1918,45 @@
                 }
 
                 html += `</div>`;
+
+            } else if (isHistoryTab) {
+                // ===== ИСТОРИЯ =====
+                const history = getHistory();
+
+                html += `
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+                        <h2 style="font-size:22px; color:#1a1a1e;">📜 История изменений</h2>
+                        <button class="history-clear-btn" onclick="clearHistory()">🗑️ Очистить историю</button>
+                    </div>
+                `;
+
+                if (history.length === 0) {
+                    html += `<div class="history-empty">📭 История пуста</div>`;
+                } else {
+                    html += `<div class="history-list">`;
+                    history.forEach(item => {
+                        html += `
+                            <div class="history-item">
+                                <div class="history-left">
+                                    <div class="history-action">${escapeHtml(item.action)}</div>
+                                    <div class="history-detail">${escapeHtml(item.detail)}</div>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                                    <span class="history-user">${escapeHtml(item.user)}</span>
+                                    <span class="history-meta">${escapeHtml(item.timestamp)}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += `</div>`;
+                    html += `<div style="margin-top:16px; color:#71717a; font-size:13px;">Всего записей: ${history.length}</div>`;
+                }
             }
 
             html += `</div>`;
             container.innerHTML = html;
 
-            // Для Tumblr: фокус на textarea
-            if (isTumblrTab) {
+            if (isTumblrTab && admin) {
                 setTimeout(() => {
                     const ta = document.getElementById('tumblrTextarea');
                     if (ta) ta.focus();
@@ -1513,12 +1977,16 @@
         }
 
         // ============================================================
-        // 12. ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК
+        // 11. ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК
         // ============================================================
         function switchTab(index) {
+            if (index === HISTORY_TAB && !isAdmin()) {
+                showNotification('⛔ Доступ запрещён! Только для администратора');
+                return;
+            }
             currentTab = index;
             renderAll();
-            if (DAY_TABS.includes(index)) {
+            if (DAY_TABS.includes(index) && isAdmin()) {
                 setTimeout(() => {
                     const input = document.getElementById(`newPostInput_${index}`);
                     if (input) input.focus();
@@ -1527,10 +1995,11 @@
         }
 
         // ============================================================
-        // 13. ОБРАБОТЧИКИ
+        // 12. ОБРАБОТЧИКИ
         // ============================================================
         function onAddPost(e, tabIndex) {
             e.preventDefault();
+            if (!isAdmin()) return;
             const input = document.getElementById(`newPostInput_${tabIndex}`);
             const title = input.value.trim();
             if (!title) return;
@@ -1538,7 +2007,6 @@
             setTimeout(() => input.focus(), 50);
         }
 
-        // Описание дня
         let descriptionTimeout = null;
 
         function onDescriptionInput(el) {
@@ -1546,40 +2014,59 @@
         }
 
         function onDescriptionBlur(el) {
+            if (!isAdmin()) return;
             const tabIndex = parseInt(el.dataset.tab);
             const text = el.innerText;
             saveDescription(tabIndex, text);
         }
 
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && e.target.classList.contains('desc-text')) {
-                // Разрешаем перенос строки
+            if (e.key === 'Enter' && e.target.classList.contains('desc-text') && isAdmin()) {
                 document.execCommand('insertLineBreak');
                 e.preventDefault();
             }
         });
 
-        // Караван
         function onCaravanChange(tabIndex, field, value) {
+            if (!isAdmin()) return;
             saveCaravan(tabIndex, field, value);
         }
 
-        // Закрытие модалки по Escape
+        // Закрытие модалок по Escape
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') closeExcelModal();
+            if (e.key === 'Escape') {
+                closeExcelModal();
+            }
         });
 
         document.getElementById('excelModal').addEventListener('click', function(e) {
             if (e.target === this) closeExcelModal();
         });
 
+        // Вход по Enter
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const authModal = document.getElementById('authModal');
+                if (authModal.classList.contains('show')) {
+                    login();
+                }
+            }
+        });
+
         // ============================================================
-        // 14. ПЕРВОНАЧАЛЬНЫЙ ЗАПУСК
+        // 13. ПЕРВОНАЧАЛЬНЫЙ ЗАПУСК
         // ============================================================
         (function init() {
+            const isAuth = checkAuth();
+
+            if (!isAuth) {
+                document.getElementById('authModal').classList.add('show');
+            } else {
+                updateUI();
+            }
+
             const data = loadData();
             if (data.posts[0].length === 0) {
-                // Пример для понедельника
                 data.posts[0] = [
                     { id: Date.now() + 1, title: 'Созвониться с командой в 10:00', date: '15 июл, 10:00' },
                     { id: Date.now() + 2, title: 'Завершить отчёт по проекту', date: '15 июл, 14:30' },
@@ -1587,7 +2074,13 @@
                 data.descriptions[0] = 'Сегодня важный день! Не забываем про дедлайн в 18:00.';
                 data.caravan[0] = { date: '2026-07-15', time: '09:30', comment: 'Встреча у центральных ворот' };
                 saveData(data);
+                addHistory('init', 'Система инициализирована');
+                addHistory('add_notification', 'Понедельник: "Созвониться с командой в 10:00"');
+                addHistory('add_notification', 'Понедельник: "Завершить отчёт по проекту"');
+                addHistory('edit_description', 'Понедельник: описание дня обновлено');
+                addHistory('edit_caravan', 'Понедельник: изменена дата каравана');
             }
+
             renderAll();
         })();
     </script>
