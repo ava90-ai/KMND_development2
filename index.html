@@ -1201,10 +1201,17 @@
     <!-- ===== МОДАЛЬНОЕ ОКНО АВТОРИЗАЦИИ ===== -->
     <div class="auth-overlay" id="authModal">
         <div class="auth-box">
+            <!-- КНОПКА ЗАКРЫТИЯ -->
+            <div style="display:flex; justify-content:flex-end; margin-bottom:8px;">
+                <button onclick="closeAuthModal()" style="background:none;border:none;font-size:24px;cursor:pointer;color:#a1a1aa;transition:0.2s;" 
+                        onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#a1a1aa'">
+                    ✕
+                </button>
+            </div>
             <h2>KomanDa</h2>
             <p>Войдите для доступа к планировщику</p>
             <div class="auth-error" id="authError">Неверный логин или пароль</div>
-            <input type="text" id="authLogin" placeholder="Логин">
+            <input type="text" id="authLogin" placeholder="Логин" value="AdmKmnd">
             <input type="password" id="authPassword" placeholder="Пароль">
             <button class="auth-btn" onclick="login()">🔑 Войти</button>
             <div class="auth-hint">Только администратор может вносить изменения</div>
