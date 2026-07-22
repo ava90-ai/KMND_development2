@@ -111,6 +111,24 @@
             max-width: 400px;
             width: 100%;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .auth-box .close-btn {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #a1a1aa;
+            transition: 0.2s;
+            line-height: 1;
+        }
+
+        .auth-box .close-btn:hover {
+            color: #ef4444;
         }
 
         .auth-box h2 {
@@ -255,37 +273,6 @@
                 opacity: 1;
                 transform: translateY(0);
             }
-        }
-
-        /* ===== БЛОКИРОВКА ДЛЯ НЕАДМИНОВ ===== */
-        .readonly-overlay {
-            position: relative;
-        }
-
-        .readonly-overlay::after {
-            content: '🔒 Только для просмотра';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 16px;
-            z-index: 10;
-            pointer-events: none;
-        }
-
-        .readonly-overlay .readonly-blocker {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            z-index: 5;
-            cursor: not-allowed;
         }
 
         /* ===== ОПИСАНИЕ ДНЯ ===== */
@@ -1026,6 +1013,23 @@
             max-height: 80vh;
             overflow-y: auto;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .modal-box .close-modal-btn {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            background: none;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            color: #a1a1aa;
+            transition: 0.2s;
+        }
+
+        .modal-box .close-modal-btn:hover {
+            color: #ef4444;
         }
 
         .modal-box h3 {
@@ -1146,6 +1150,11 @@
                 flex-direction: column;
                 align-items: stretch;
             }
+
+            .modal-box {
+                padding: 20px;
+                margin: 10px;
+            }
         }
 
         @media (max-width: 480px) {
@@ -1188,6 +1197,7 @@
     <!-- ===== МОДАЛЬНОЕ ОКНО ДЛЯ EXCEL ===== -->
     <div class="modal-overlay" id="excelModal">
         <div class="modal-box">
+            <button class="close-modal-btn" onclick="closeExcelModal()">✕</button>
             <h3>📊 Вставка таблицы из Excel</h3>
             <p>Скопируйте ячейки из Excel (Ctrl+C) и вставьте их сюда. Таблица будет создана автоматически.</p>
             <textarea id="excelInput" placeholder="Вставьте сюда данные из Excel..."></textarea>
@@ -1201,13 +1211,7 @@
     <!-- ===== МОДАЛЬНОЕ ОКНО АВТОРИЗАЦИИ ===== -->
     <div class="auth-overlay" id="authModal">
         <div class="auth-box">
-            <!-- КНОПКА ЗАКРЫТИЯ -->
-            <div style="display:flex; justify-content:flex-end; margin-bottom:8px;">
-                <button onclick="closeAuthModal()" style="background:none;border:none;font-size:24px;cursor:pointer;color:#a1a1aa;transition:0.2s;" 
-                        onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#a1a1aa'">
-                    ✕
-                </button>
-            </div>
+            <button class="close-btn" onclick="closeAuthModal()">✕</button>
             <h2>KomanDa</h2>
             <p>Войдите для доступа к планировщику</p>
             <div class="auth-error" id="authError">Неверный логин или пароль</div>
@@ -1222,8 +1226,6 @@
         // ============================================================
         // 1. НАСТРОЙКИ АВТОРИЗАЦИИ
         // ============================================================
-        // Логин администратора: AdmKmnd
-        // Пароль: gH7#kL9$pQ2@mR5!xW8&zN3
         const USERS = {
             'AdmKmnd': 'gH7#kL9$pQ2@mR5!xW8&zN3'
         };
@@ -1284,7 +1286,7 @@
                 currentUser = login;
                 localStorage.setItem(AUTH_KEY, JSON.stringify({ login }));
                 errorEl.style.display = 'none';
-                document.getElementById('authModal').classList.remove('show');
+                closeAuthModal();
                 updateUI();
                 renderAll();
                 if (isAdmin()) {
@@ -1304,6 +1306,10 @@
             updateUI();
             renderAll();
             document.getElementById('authModal').classList.add('show');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.remove('show');
         }
 
         function updateUI() {
@@ -1331,7 +1337,38 @@
         }
 
         // ============================================================
-        // 4. ИСТОРИЯ ИЗМЕНЕНИЙ
+        // 4. ЗАКРЫТИЕ МОДАЛЬНЫХ ОКОН
+        // ============================================================
+        // Закрытие авторизации по клику вне окна
+        document.getElementById('authModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeAuthModal();
+            }
+        });
+
+        // Закрытие Excel модалки по клику вне окна
+        document.getElementById('excelModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeExcelModal();
+            }
+        });
+
+        // Закрытие по Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const authModal = document.getElementById('authModal');
+                if (authModal.classList.contains('show')) {
+                    closeAuthModal();
+                }
+                const excelModal = document.getElementById('excelModal');
+                if (excelModal.classList.contains('show')) {
+                    closeExcelModal();
+                }
+            }
+        });
+
+        // ============================================================
+        // 5. ИСТОРИЯ ИЗМЕНЕНИЙ
         // ============================================================
         function getHistory() {
             const raw = localStorage.getItem(HISTORY_KEY);
@@ -1348,7 +1385,6 @@
         }
 
         function addHistory(action, detail) {
-            // Только администратор записывает историю
             if (!isAdmin()) return;
             const history = getHistory();
             history.unshift({
@@ -1378,7 +1414,7 @@
         }
 
         // ============================================================
-        // 5. ОСНОВНЫЕ ДАННЫЕ
+        // 6. ОСНОВНЫЕ ДАННЫЕ
         // ============================================================
         function getDefaultData() {
             const tabs = TAB_NAMES.map(() => []);
@@ -1422,7 +1458,7 @@
         }
 
         // ============================================================
-        // 6. ОПЕРАЦИИ С ДАННЫМИ (только для администратора)
+        // 7. ОПЕРАЦИИ С ДАННЫМИ (только для администратора)
         // ============================================================
         function checkAdminPermission() {
             if (!isAdmin()) {
@@ -1551,7 +1587,7 @@
         }
 
         // ============================================================
-        // 7. МОДАЛЬНОЕ ОКНО ДЛЯ EXCEL
+        // 8. МОДАЛЬНОЕ ОКНО ДЛЯ EXCEL
         // ============================================================
         let currentExcelTab = 0;
 
@@ -1598,7 +1634,7 @@
         }
 
         // ============================================================
-        // 8. TUMBLR-ФУНКЦИИ
+        // 9. TUMBLR-ФУНКЦИИ
         // ============================================================
         function toggleImageInput() {
             if (!isAdmin()) return;
@@ -1675,7 +1711,7 @@
         }
 
         // ============================================================
-        // 9. УВЕДОМЛЕНИЯ
+        // 10. УВЕДОМЛЕНИЯ
         // ============================================================
         function showNotification(msg) {
             const div = document.createElement('div');
@@ -1693,7 +1729,7 @@
         }
 
         // ============================================================
-        // 10. ОТРИСОВКА
+        // 11. ОТРИСОВКА
         // ============================================================
         let currentTab = 0;
 
@@ -1726,13 +1762,11 @@
             let html = `<div class="tab-content active">`;
 
             if (isDayTab) {
-                // ===== ДНИ НЕДЕЛИ =====
                 const posts = data.posts[currentTab] || [];
                 const desc = data.descriptions[currentTab] || '';
                 const caravan = data.caravan[currentTab] || { date: '', time: '', comment: '' };
                 const excelHtml = data.excelTables[currentTab] || '';
 
-                // ---- Описание дня ----
                 html += `
                     <div class="day-description">
                         <span class="icon">📝</span>
@@ -1747,7 +1781,6 @@
                     </div>
                 `;
 
-                // ---- Караван ----
                 html += `
                     <div class="caravan-block">
                         <div class="caravan-title">
@@ -1772,7 +1805,6 @@
                     </div>
                 `;
 
-                // ---- Excel таблица ----
                 html += `
                     <div class="excel-table-wrapper" id="excelWrapper_${currentTab}">
                 `;
@@ -1799,7 +1831,6 @@
                     </div>
                 `;
 
-                // ---- Уведомления ----
                 html += `
                     <div class="posts-table-wrapper">
                         <table class="posts-table">
@@ -1851,7 +1882,6 @@
                 `;
 
             } else if (isTumblrTab) {
-                // ===== TUMBLR-ПОСТЫ =====
                 const posts = (data.tumblrPosts && data.tumblrPosts[currentTab]) || [];
 
                 if (admin) {
@@ -1927,7 +1957,6 @@
                 html += `</div>`;
 
             } else if (isHistoryTab) {
-                // ===== ИСТОРИЯ =====
                 const history = getHistory();
 
                 html += `
@@ -1984,7 +2013,7 @@
         }
 
         // ============================================================
-        // 11. ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК
+        // 12. ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК
         // ============================================================
         function switchTab(index) {
             if (index === HISTORY_TAB && !isAdmin()) {
@@ -2002,7 +2031,7 @@
         }
 
         // ============================================================
-        // 12. ОБРАБОТЧИКИ
+        // 13. ОБРАБОТЧИКИ
         // ============================================================
         function onAddPost(e, tabIndex) {
             e.preventDefault();
@@ -2039,18 +2068,7 @@
             saveCaravan(tabIndex, field, value);
         }
 
-        // Закрытие модалок по Escape
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeExcelModal();
-            }
-        });
-
-        document.getElementById('excelModal').addEventListener('click', function(e) {
-            if (e.target === this) closeExcelModal();
-        });
-
-        // Вход по Enter
+        // Вход по Enter в модалке авторизации
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
                 const authModal = document.getElementById('authModal');
@@ -2061,7 +2079,7 @@
         });
 
         // ============================================================
-        // 13. ПЕРВОНАЧАЛЬНЫЙ ЗАПУСК
+        // 14. ПЕРВОНАЧАЛЬНЫЙ ЗАПУСК
         // ============================================================
         (function init() {
             const isAuth = checkAuth();
