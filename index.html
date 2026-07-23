@@ -197,25 +197,6 @@
             text-align: center;
         }
 
-        .auth-box .auth-users {
-            margin-top: 12px;
-            font-size: 11px;
-            color: #a1a1aa;
-            text-align: center;
-            background: #f8f8fa;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #e4e4e7;
-        }
-
-        .auth-box .auth-users code {
-            background: #e4e4e7;
-            padding: 1px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            color: #3f3f46;
-        }
-
         /* ===== ЗАГЛУШКА ДЛЯ НЕАВТОРИЗОВАННЫХ ===== */
         .auth-blocker {
             display: none;
@@ -1304,7 +1285,7 @@
             <h2>KomanDa</h2>
             <p>Войдите для доступа к планировщику</p>
             <div class="auth-error" id="authError">Неверный логин или пароль</div>
-            <input type="text" id="authLogin" placeholder="Логин" value="AdmKmnd">
+            <input type="text" id="authLogin" placeholder="Логин">
             <input type="password" id="authPassword" placeholder="Пароль">
             <button class="auth-btn" onclick="login()">🔑 Войти</button>
             <div class="auth-hint">Только администратор может вносить изменения</div>
@@ -1325,7 +1306,7 @@
         const HISTORY_KEY = 'komanDaHistory';
 
         // ============================================================
-        // 2. НАЗВАНИЯ ВКЛАДОК (10 штук)
+        // 2. НАЗВАНИЯ ВКЛАДОК (11 штук)
         // ============================================================
         const TAB_NAMES = [
             'Понедельник',
@@ -1337,11 +1318,12 @@
             'Воскресенье',
             'Особые События',
             'Инструкции по развитию',
-            '📜 История'
+            '📜 История',
+            'Битва на выживание и прочие инструкции'
         ];
 
         const DAY_TABS = [0, 1, 2, 3, 4, 5, 6];
-        const TUMBLR_TABS = [7, 8];
+        const TUMBLR_TABS = [7, 8, 10];
         const HISTORY_TAB = 9;
 
         let currentUser = null;
@@ -1452,8 +1434,6 @@
         // ============================================================
         document.getElementById('authModal').addEventListener('click', function(e) {
             if (e.target === this) {
-                // Не закрываем, если это единственный способ войти
-                // Но позволяем закрыть, если уже есть сессия
                 if (currentUser) {
                     closeAuthModal();
                 }
@@ -1479,7 +1459,6 @@
             }
         });
 
-        // Вход по Enter в модалке авторизации
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
                 const authModal = document.getElementById('authModal');
@@ -1622,16 +1601,30 @@
             renderAll();
         }
 
+        // ===== ИСПРАВЛЕННАЯ ФУНКЦИЯ СОХРАНЕНИЯ ОПИСАНИЯ =====
         function saveDescription(tabIndex, text) {
             if (!checkAdminPermission()) return;
             const data = loadData();
             const old = data.descriptions[tabIndex] || '';
+            // Сохраняем только если текст изменился
             if (old !== text) {
                 data.descriptions[tabIndex] = text;
                 saveData(data);
                 addHistory('edit_description', `${TAB_NAMES[tabIndex]}: описание дня обновлено`);
-                renderAll();
+                // НЕ вызываем renderAll() здесь, чтобы избежать конфликтов
+                // Вместо этого обновляем только отображение описания
+                updateDescriptionDisplay(tabIndex, text);
             }
+        }
+
+        // ===== НОВАЯ ФУНКЦИЯ ДЛЯ ОБНОВЛЕНИЯ ОПИСАНИЯ БЕЗ ПЕРЕРИСОВКИ ВСЕГО =====
+        function updateDescriptionDisplay(tabIndex, text) {
+            const descElements = document.querySelectorAll('.desc-text');
+            descElements.forEach(el => {
+                if (parseInt(el.dataset.tab) === tabIndex) {
+                    el.innerText = text;
+                }
+            });
         }
 
         function saveCaravan(tabIndex, field, value) {
@@ -1645,7 +1638,10 @@
                 saveData(data);
                 const fieldNames = { date: 'дата', time: 'время', comment: 'комментарий' };
                 addHistory('edit_caravan', `${TAB_NAMES[tabIndex]}: изменён ${fieldNames[field] || field}`);
-                renderAll();
+                // Обновляем только если мы на этой вкладке
+                if (currentTab === tabIndex) {
+                    renderAll();
+                }
             }
         }
 
@@ -2130,7 +2126,6 @@
         }
 
         function renderAll() {
-            // Скрываем контент, если не авторизован
             if (!currentUser) {
                 document.querySelector('.container').style.display = 'none';
                 return;
@@ -2204,7 +2199,6 @@
 
             if (!isAuth) {
                 showAuthBlocker();
-                // Показываем модалку с авторизацией
                 setTimeout(() => {
                     showAuthModal();
                 }, 300);
