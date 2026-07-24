@@ -1292,22 +1292,21 @@
         </div>
     </div>
 
-    <script>
+<script>
         // ============================================================
-        // 1. НАСТРОЙКИ АВТОРИЗАЦИИ
+        // 1. НАСТРОЙКИ
         // ============================================================
+        // ⚠️ ЗАМЕНИТЕ ЭТУ ССЫЛКУ НА ВАШУ ИЗ GOOGLE APPS SCRIPT!
+        const API_URL = 'https://script.google.com/macros/s/ВАШ_ID/exec';
+        
         const USERS = {
             'AdmKmnd': 'gH7#kL9$pQ2@mR5!xW8&zN3',
             'user': 'user12345!'
         };
 
-        const STORAGE_KEY = 'komanDaData';
         const AUTH_KEY = 'komanDaAuth';
         const HISTORY_KEY = 'komanDaHistory';
 
-        // ============================================================
-        // 2. НАЗВАНИЯ ВКЛАДОК (11 штук)
-        // ============================================================
         const TAB_NAMES = [
             'Понедельник',
             'Вторник',
@@ -1318,8 +1317,8 @@
             'Воскресенье',
             'Особые События',
             'Инструкции по развитию',
-            '📜 История',
-            'Битва на выживание и прочие инструкции'
+            'Битва на выживание и прочие инструкции',
+            '📜 История'
         ];
 
         const DAY_TABS = [0, 1, 2, 3, 4, 5, 6];
@@ -1327,6 +1326,181 @@
         const HISTORY_TAB = 9;
 
         let currentUser = null;
+        let currentTab = 0;
+        let appData = null;
+        let isSaving = false;
+
+        // ============================================================
+        // 2. РАБОТА С УДАЛЁННЫМИ ДАННЫМИ (Google Sheets)
+        // ============================================================
+        function getDefaultData() {
+            const tabs = TAB_NAMES.map(() => []);
+            return {
+                descriptions: {},
+                caravan: {},
+                excelTables: {},
+                tumblrPosts: {},
+                posts: tabs
+            };
+        }
+
+        function getEmptyRow() {
+            return TAB_NAMES.map(() => []);
+        }
+
+        // Загрузка данных с сервера
+        async function loadDataFromServer() {
+            try {
+                const url = `${API_URL}?action=getData&t=${Date.now()}`;
+                const response = await fetch(url);
+                const result = await response.json();
+                
+                if (result.status === 'success' && result.data) {
+                    // Преобразуем данные из Google Sheets в объект
+                    const data = parseSheetData(result.data);
+                    appData = data;
+                    return data;
+                } else {
+                    console.error('Ошибка загрузки данных:', result);
+                    const def = getDefaultData();
+                    appData = def;
+                    return def;
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки:', error);
+                const def = getDefaultData();
+                appData = def;
+                return def;
+            }
+        }
+
+        // Парсинг данных из Google Sheets
+        function parseSheetData(sheetData) {
+            const data = getDefaultData();
+            
+            if (!sheetData || sheetData.length === 0) {
+                return data;
+            }
+
+            try {
+                // Первая строка — заголовки
+                const headers = sheetData[0];
+                
+                // Находим индексы колонок
+                const postIndex = headers.indexOf('posts');
+                const descIndex = headers.indexOf('descriptions');
+                const caravanIndex = headers.indexOf('caravan');
+                const excelIndex = headers.indexOf('excelTables');
+                const tumblrIndex = headers.indexOf('tumblrPosts');
+                
+                // Строки данных (начиная со второй)
+                for (let i = 1; i < sheetData.length; i++) {
+                    const row = sheetData[i];
+                    if (!row || row.length === 0) continue;
+                    
+                    const tabIndex = parseInt(row[0]);
+                    if (isNaN(tabIndex) || tabIndex < 0 || tabIndex >= TAB_NAMES.length) continue;
+                    
+                    // Посты (уведомления)
+                    if (postIndex !== -1 && row[postIndex]) {
+                        try {
+                            const posts = JSON.parse(row[postIndex]);
+                            if (Array.isArray(posts)) {
+                                data.posts[tabIndex] = posts;
+                            }
+                        } catch (e) {}
+                    }
+                    
+                    // Описания
+                    if (descIndex !== -1 && row[descIndex]) {
+                        data.descriptions[tabIndex] = row[descIndex];
+                    }
+                    
+                    // Караван
+                    if (caravanIndex !== -1 && row[caravanIndex]) {
+                        try {
+                            const caravan = JSON.parse(row[caravanIndex]);
+                            if (typeof caravan === 'object') {
+                                data.caravan[tabIndex] = caravan;
+                            }
+                        } catch (e) {}
+                    }
+                    
+                    // Excel таблицы
+                    if (excelIndex !== -1 && row[excelIndex]) {
+                        data.excelTables[tabIndex] = row[excelIndex];
+                    }
+                    
+                    // Tumblr посты
+                    if (tumblrIndex !== -1 && row[tumblrIndex]) {
+                        try {
+                            const tumblr = JSON.parse(row[tumblrIndex]);
+                            if (Array.isArray(tumblr)) {
+                                data.tumblrPosts[tabIndex] = tumblr;
+                            }
+                        } catch (e) {}
+                    }
+                }
+            } catch (error) {
+                console.error('Ошибка парсинга данных:', error);
+            }
+            
+            return data;
+        }
+
+        // Сохранение данных на сервер
+        async function saveDataToServer(data) {
+            if (isSaving) return;
+            isSaving = true;
+            
+            try {
+                // Преобразуем данные в формат для Google Sheets
+                const rows = prepareSheetData(data);
+                const jsonData = JSON.stringify(rows);
+                const url = `${API_URL}?action=saveData&data=${encodeURIComponent(jsonData)}&t=${Date.now()}`;
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    }
+                });
+                
+                const result = await response.json();
+                if (result.status === 'success') {
+                    console.log('✅ Данные сохранены на сервер');
+                } else {
+                    console.error('Ошибка сохранения:', result);
+                }
+            } catch (error) {
+                console.error('Ошибка сохранения:', error);
+            } finally {
+                isSaving = false;
+            }
+        }
+
+        // Подготовка данных для Google Sheets
+        function prepareSheetData(data) {
+            const rows = [];
+            
+            // Заголовки
+            rows.push(['tabIndex', 'posts', 'descriptions', 'caravan', 'excelTables', 'tumblrPosts']);
+            
+            // Данные по каждой вкладке
+            for (let i = 0; i < TAB_NAMES.length; i++) {
+                const row = [
+                    i,
+                    JSON.stringify(data.posts[i] || []),
+                    data.descriptions[i] || '',
+                    JSON.stringify(data.caravan[i] || { date: '', time: '', comment: '' }),
+                    data.excelTables[i] || '',
+                    JSON.stringify(data.tumblrPosts[i] || [])
+                ];
+                rows.push(row);
+            }
+            
+            return rows;
+        }
 
         // ============================================================
         // 3. АВТОРИЗАЦИЯ
@@ -1361,7 +1535,7 @@
                 closeAuthModal();
                 hideAuthBlocker();
                 updateUI();
-                renderAll();
+                loadAndRender();
                 if (isAdmin()) {
                     addHistory('login', `Вход администратора ${login}`);
                 } else {
@@ -1469,7 +1643,7 @@
         });
 
         // ============================================================
-        // 5. ИСТОРИЯ ИЗМЕНЕНИЙ
+        // 5. ИСТОРИЯ ИЗМЕНЕНИЙ (локальная, только для админа)
         // ============================================================
         function getHistory() {
             const raw = localStorage.getItem(HISTORY_KEY);
@@ -1515,51 +1689,7 @@
         }
 
         // ============================================================
-        // 6. ОСНОВНЫЕ ДАННЫЕ
-        // ============================================================
-        function getDefaultData() {
-            const tabs = TAB_NAMES.map(() => []);
-            return {
-                descriptions: {},
-                caravan: {},
-                excelTables: {},
-                tumblrPosts: {},
-                posts: tabs
-            };
-        }
-
-        function loadData() {
-            const raw = localStorage.getItem(STORAGE_KEY);
-            if (!raw) {
-                const def = getDefaultData();
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(def));
-                return def;
-            }
-            try {
-                const data = JSON.parse(raw);
-                if (!data.posts || !Array.isArray(data.posts) || data.posts.length !== TAB_NAMES.length) {
-                    const def = getDefaultData();
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(def));
-                    return def;
-                }
-                if (!data.descriptions) data.descriptions = {};
-                if (!data.caravan) data.caravan = {};
-                if (!data.excelTables) data.excelTables = {};
-                if (!data.tumblrPosts) data.tumblrPosts = {};
-                return data;
-            } catch {
-                const def = getDefaultData();
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(def));
-                return def;
-            }
-        }
-
-        function saveData(data) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        }
-
-        // ============================================================
-        // 7. ОПЕРАЦИИ С ДАННЫМИ (только для администратора)
+        // 6. ОПЕРАЦИИ С ДАННЫМИ (с автосохранением на сервер)
         // ============================================================
         function checkAdminPermission() {
             if (!isAdmin()) {
@@ -1569,9 +1699,19 @@
             return true;
         }
 
+        async function saveAndSync(data) {
+            if (appData) {
+                Object.assign(appData, data);
+            } else {
+                appData = data;
+            }
+            await saveDataToServer(appData);
+            renderAll();
+        }
+
         function addPost(tabIndex, title) {
             if (!checkAdminPermission()) return;
-            const data = loadData();
+            const data = appData || loadData();
             const newPost = {
                 id: Date.now() + Math.random() * 1000,
                 title: title.trim(),
@@ -1583,41 +1723,34 @@
                 })
             };
             data.posts[tabIndex].unshift(newPost);
-            saveData(data);
             addHistory('add_notification', `${TAB_NAMES[tabIndex]}: "${title.trim()}"`);
-            renderAll();
+            saveAndSync(data);
         }
 
         function deletePost(tabIndex, postId) {
             if (!checkAdminPermission()) return;
             if (!confirm('Удалить это уведомление?')) return;
-            const data = loadData();
+            const data = appData || loadData();
             const post = data.posts[tabIndex].find(p => p.id === postId);
             data.posts[tabIndex] = data.posts[tabIndex].filter(p => p.id !== postId);
-            saveData(data);
             if (post) {
                 addHistory('delete_notification', `${TAB_NAMES[tabIndex]}: "${post.title}"`);
             }
-            renderAll();
+            saveAndSync(data);
         }
 
-        // ===== ИСПРАВЛЕННАЯ ФУНКЦИЯ СОХРАНЕНИЯ ОПИСАНИЯ =====
         function saveDescription(tabIndex, text) {
             if (!checkAdminPermission()) return;
-            const data = loadData();
+            const data = appData || loadData();
             const old = data.descriptions[tabIndex] || '';
-            // Сохраняем только если текст изменился
             if (old !== text) {
                 data.descriptions[tabIndex] = text;
-                saveData(data);
                 addHistory('edit_description', `${TAB_NAMES[tabIndex]}: описание дня обновлено`);
-                // НЕ вызываем renderAll() здесь, чтобы избежать конфликтов
-                // Вместо этого обновляем только отображение описания
+                saveAndSync(data);
                 updateDescriptionDisplay(tabIndex, text);
             }
         }
 
-        // ===== НОВАЯ ФУНКЦИЯ ДЛЯ ОБНОВЛЕНИЯ ОПИСАНИЯ БЕЗ ПЕРЕРИСОВКИ ВСЕГО =====
         function updateDescriptionDisplay(tabIndex, text) {
             const descElements = document.querySelectorAll('.desc-text');
             descElements.forEach(el => {
@@ -1629,44 +1762,38 @@
 
         function saveCaravan(tabIndex, field, value) {
             if (!checkAdminPermission()) return;
-            const data = loadData();
+            const data = appData || loadData();
             if (!data.caravan) data.caravan = {};
             if (!data.caravan[tabIndex]) data.caravan[tabIndex] = { date: '', time: '', comment: '' };
             const old = data.caravan[tabIndex][field] || '';
             if (old !== value) {
                 data.caravan[tabIndex][field] = value;
-                saveData(data);
                 const fieldNames = { date: 'дата', time: 'время', comment: 'комментарий' };
                 addHistory('edit_caravan', `${TAB_NAMES[tabIndex]}: изменён ${fieldNames[field] || field}`);
-                // Обновляем только если мы на этой вкладке
-                if (currentTab === tabIndex) {
-                    renderAll();
-                }
+                saveAndSync(data);
             }
         }
 
         function saveExcelTable(tabIndex, html) {
             if (!checkAdminPermission()) return;
-            const data = loadData();
+            const data = appData || loadData();
             data.excelTables[tabIndex] = html;
-            saveData(data);
             addHistory('add_excel', `${TAB_NAMES[tabIndex]}: вставлена таблица Excel`);
-            renderAll();
+            saveAndSync(data);
         }
 
         function clearExcelTable(tabIndex) {
             if (!checkAdminPermission()) return;
             if (!confirm('Очистить таблицу?')) return;
-            const data = loadData();
+            const data = appData || loadData();
             data.excelTables[tabIndex] = '';
-            saveData(data);
             addHistory('clear_excel', `${TAB_NAMES[tabIndex]}: таблица Excel очищена`);
-            renderAll();
+            saveAndSync(data);
         }
 
         function addTumblrPost(tabIndex, content) {
             if (!checkAdminPermission()) return;
-            const data = loadData();
+            const data = appData || loadData();
             if (!data.tumblrPosts) data.tumblrPosts = {};
             if (!data.tumblrPosts[tabIndex]) data.tumblrPosts[tabIndex] = [];
 
@@ -1682,30 +1809,28 @@
                 })
             };
             data.tumblrPosts[tabIndex].unshift(newPost);
-            saveData(data);
             const preview = content.substring(0, 50) + (content.length > 50 ? '...' : '');
             addHistory('add_tumblr', `${TAB_NAMES[tabIndex]}: "${preview}"`);
-            renderAll();
+            saveAndSync(data);
         }
 
         function deleteTumblrPost(tabIndex, postId) {
             if (!checkAdminPermission()) return;
             if (!confirm('Удалить этот пост?')) return;
-            const data = loadData();
+            const data = appData || loadData();
             if (data.tumblrPosts && data.tumblrPosts[tabIndex]) {
                 const post = data.tumblrPosts[tabIndex].find(p => p.id === postId);
                 data.tumblrPosts[tabIndex] = data.tumblrPosts[tabIndex].filter(p => p.id !== postId);
-                saveData(data);
                 if (post) {
                     const preview = post.content.substring(0, 50) + (post.content.length > 50 ? '...' : '');
                     addHistory('delete_tumblr', `${TAB_NAMES[tabIndex]}: "${preview}"`);
                 }
-                renderAll();
+                saveAndSync(data);
             }
         }
 
         // ============================================================
-        // 8. МОДАЛЬНОЕ ОКНО ДЛЯ EXCEL
+        // 7. МОДАЛЬНОЕ ОКНО ДЛЯ EXCEL
         // ============================================================
         let currentExcelTab = 0;
 
@@ -1752,7 +1877,7 @@
         }
 
         // ============================================================
-        // 9. TUMBLR-ФУНКЦИИ
+        // 8. TUMBLR-ФУНКЦИИ
         // ============================================================
         function toggleImageInput() {
             if (!isAdmin()) return;
@@ -1829,7 +1954,7 @@
         }
 
         // ============================================================
-        // 10. УВЕДОМЛЕНИЯ
+        // 9. УВЕДОМЛЕНИЯ
         // ============================================================
         function showNotification(msg) {
             const div = document.createElement('div');
@@ -1847,9 +1972,16 @@
         }
 
         // ============================================================
-        // 11. ОТРИСОВКА
+        // 10. ЗАГРУЗКА И ОТРИСОВКА
         // ============================================================
-        let currentTab = 0;
+        function loadData() {
+            return appData || getDefaultData();
+        }
+
+        async function loadAndRender() {
+            await loadDataFromServer();
+            renderAll();
+        }
 
         function renderTabs() {
             const container = document.getElementById('tabsContainer');
@@ -2136,7 +2268,7 @@
         }
 
         // ============================================================
-        // 12. ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК
+        // 11. ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК
         // ============================================================
         function switchTab(index) {
             if (index === HISTORY_TAB && !isAdmin()) {
@@ -2154,7 +2286,7 @@
         }
 
         // ============================================================
-        // 13. ОБРАБОТЧИКИ
+        // 12. ОБРАБОТЧИКИ
         // ============================================================
         function onAddPost(e, tabIndex) {
             e.preventDefault();
@@ -2192,9 +2324,9 @@
         }
 
         // ============================================================
-        // 14. ПЕРВОНАЧАЛЬНЫЙ ЗАПУСК
+        // 13. ПЕРВОНАЧАЛЬНЫЙ ЗАПУСК
         // ============================================================
-        (function init() {
+        (async function init() {
             const isAuth = checkAuth();
 
             if (!isAuth) {
@@ -2207,15 +2339,18 @@
                 updateUI();
             }
 
-            const data = loadData();
-            if (data.posts[0].length === 0) {
-                data.posts[0] = [
+            // Загружаем данные с сервера
+            await loadDataFromServer();
+
+            // Если данных нет, создаём тестовые
+            if (appData && appData.posts[0].length === 0) {
+                appData.posts[0] = [
                     { id: Date.now() + 1, title: 'Созвониться с командой в 10:00', date: '15 июл, 10:00' },
                     { id: Date.now() + 2, title: 'Завершить отчёт по проекту', date: '15 июл, 14:30' },
                 ];
-                data.descriptions[0] = 'Сегодня важный день! Не забываем про дедлайн в 18:00.';
-                data.caravan[0] = { date: '2026-07-15', time: '09:30', comment: 'Встреча у центральных ворот' };
-                saveData(data);
+                appData.descriptions[0] = 'Сегодня важный день! Не забываем про дедлайн в 18:00.';
+                appData.caravan[0] = { date: '2026-07-15', time: '09:30', comment: 'Встреча у центральных ворот' };
+                await saveDataToServer(appData);
                 addHistory('init', 'Система инициализирована');
                 addHistory('add_notification', 'Понедельник: "Созвониться с командой в 10:00"');
                 addHistory('add_notification', 'Понедельник: "Завершить отчёт по проекту"');
@@ -2225,7 +2360,7 @@
 
             renderAll();
         })();
-    </script>
-
+    </script>   
+    
 </body>
 </html>
